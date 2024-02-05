@@ -1,0 +1,73 @@
+---
+title: "Final project (1)"
+author: "Nhan Nguyen"
+date: "2023-04-25"
+output: html_document
+---
+
+```{r}
+library(readxl)
+diabete <- read_excel("Diabetes.xlsx")
+```
+
+
+```{r}
+
+#create a summary statistic table
+library(vtable)
+st(diabete, vars = c("cholesterol", "glucose","hdl_chol","chol_hdl_ratio","age","height","weight","bmi","systolic_bp","diastolic_bp","waist","hip","waist_hip_ratio"))
+```
+```{r}
+#create a histogram to show the distribution of age
+diabetes_data <- subset(diabete, diabetes = 1)
+library(ggplot2)
+ggplot(data = diabetes_data, aes(x = age)) +
+  geom_histogram(binwidth = 5, fill = "#ADD8E6") +
+  labs(x = "Age", y = "Count") + ggtitle("The Age Distribution of individuals with diabetes")
+```
+
+
+```{r}
+#creating a boxplot to show the difference in glucose between diabetes and non-diabetes
+library(ggplot2)
+ggplot(diabete, aes(x = factor(diabete$Diabete_numeric), y = diabete$glucose, fill = factor(diabete$Diabete_numeric))) + geom_boxplot() + xlab("Diabetes Status") + ylab("Glucose Levels") + ggtitle("Difference in Glucose Levels between Diabetes and Non-Diabetes Individuals") + labs(fill = "Diabetes Status\n0 = non-diabetes\n1 = diabetes")+ theme_minimal()
+```
+
+#Hypothesis test
+```{r}
+#Ho: The true population mean of age get diabetes is greater than 45 
+#H1: the true population mean of age get diabetes is smaller than 45
+t.test(diabetes_data$age, mu = 45, alternative = "less")
+cv <- qt(0.95, df = 69)
+#ploting the critical region 
+x <- seq(-5, 5, length=10000)
+y <- dt(x, df = 69)
+plot(x, y, type = "l", xlab = "t-statistic", ylab = "Density", main = "Critical region of the one-sided test with df = 69 and alpha = 5%")
+
+polygon(c(qt(.05, df=69), x[ x <= qt(.05, df=69)]), c(0, y[ x <= qt(.05, df=69)]), col = "lightblue")
+abline(v=cv, lty="dashed", col = 2)
+```
+
+```{r}
+#Anova testing 
+anova_result <- aov(glucose ~ diabetes, data = diabete)
+print(anova_result)
+summary(anova_result)
+cv <- qf(0.95, df1 = 1, df2= 389, lower.tail = TRUE)
+print(cv)
+```
+
+
+```{r}
+# mutilple regression model to check which factors are significantly affected to diabetes
+
+mult.reg <- lm(Diabete_numeric ~ cholesterol + glucose + hdl_chol + height + weight + bmi + systolic_bp + diastolic_bp + waist + hip, data = diabete)
+summary(mult.reg)
+
+```
+
+
+
+
+
+
